@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import TaskForm from '../components/TaskForm';
 import TaskEditForm from '../components/TaskEditForm';
 
@@ -16,10 +16,8 @@ import {
 } from '../services/user.service';
 
 function Dashboard({ user, onLogout }) {
-  const [tasks, setTasks] = useState([]);
   const [showTasks, setShowTasks] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -31,24 +29,70 @@ function Dashboard({ user, onLogout }) {
   const [usersLoading, setUsersLoading] = useState(false);
   const [savingUserId, setSavingUserId] = useState(null);
 
-  const isAdmin = user?.role === 'admin';
-  const isManager = user?.role === 'manager';
+  // Normalizar el rol.
+  const currentRole = String(user?.role ?? user?.Role ?? '')
+    .trim()
+    .toLowerCase();
+
+  const isAdmin = ['admin', 'administrador'].includes(currentRole);
+  const isManager = ['manager', 'gerente'].includes(currentRole);
+
+  // Permisos por rol.
   const canManageTasks = isAdmin || isManager;
+  const canManageUsers = isAdmin;
 
   const mainAdminEmail = 'prueba.taskmanager@example.com';
 
-  async function loadTasks({ preserveFeedback = false } = {}) {
-    setLoading(true);
-    if (!preserveFeedback) setError('');
+  const queryClient = useQueryClient();
 
-    try {
-      const data = await getTasks();
-      setTasks(Array.isArray(data) ? data : data.tasks || []);
+  // Consultar tareas.
+  const {
+    data: tasks = [],
+    isFetching: loading,
+    error: tasksError,
+    refetch: refetchTasks,
+  } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: async () => {
+      const response = await getTasks();
+
+      console.log('Respuesta del Gateway:', response);
+
+      if (Array.isArray(response)) return response;
+      if (Array.isArray(response?.tasks)) return response.tasks;
+      if (Array.isArray(response?.data?.tasks)) return response.data.tasks;
+      if (Array.isArray(response?.data)) return response.data;
+
+      throw new Error('Formato de respuesta de tareas no reconocido');
+    },
+    enabled: showTasks && section === 'tasks',
+  });
+
+  // Crear tareas.
+  const createTaskMutation = useMutation({
+    mutationFn: createTask,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+  });
+
+  // Actualizar tareas.
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ id, data }) => updateTask(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+  });
+
+  // Eliminar tareas.
+  const deleteTaskMutation = useMutation({
+    mutationFn: deleteTask,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+  });
+
+  async function loadTasks() {
+    setError('');
+
+    if (!showTasks) {
       setShowTasks(true);
-    } catch (err) {
-      setError(err.message || 'No se pudieron cargar las tareas');
-    } finally {
-      setLoading(false);
+    } else {
+      await refetchTasks();
     }
   }
 
@@ -57,26 +101,35 @@ function Dashboard({ user, onLogout }) {
     setSuccess('');
 
     try {
-      await createTask(task);
-      await loadTasks({ preserveFeedback: true });
-      setModal({ type: 'success', message: '¡La tarea se ha creado con éxito!' });
+      await createTaskMutation.mutateAsync(task);
+      setShowTasks(true);
+
+      setModal({
+        type: 'success',
+        message: '¡La tarea se ha creado con éxito!',
+      });
     } catch (err) {
-      const message = err?.message || 'No se pudo crear la tarea';
-      setError(message);
+      setError(err?.message || 'No se pudo crear la tarea');
       throw err;
     }
   }
 
   async function handleUpdateTask(data) {
     const id = editingTask.Id ?? editingTask.id;
+
     setError('');
     setSuccess('');
 
     try {
-      await updateTask(id, data);
+      await updateTaskMutation.mutateAsync({ id, data });
+
       setEditingTask(null);
-      await loadTasks({ preserveFeedback: true });
-      setModal({ type: 'success', message: '¡Los cambios se han guardado con éxito!' });
+      setShowTasks(true);
+
+      setModal({
+        type: 'success',
+        message: '¡Los cambios se han guardado con éxito!',
+      });
     } catch (err) {
       setError(err?.message || 'No se pudieron guardar los cambios');
       throw err;
@@ -85,6 +138,7 @@ function Dashboard({ user, onLogout }) {
 
   function handleDeleteTask(task) {
     const title = task.Title ?? task.title;
+
     setModal({
       type: 'confirm',
       message: `¿Estás seguro de que deseas eliminar la tarea "${title}"?`,
@@ -95,21 +149,31 @@ function Dashboard({ user, onLogout }) {
 
   async function performDeleteTask(task) {
     const id = task.Id ?? task.id;
+
     setDeletingId(id);
     setError('');
     setSuccess('');
+
     try {
-      await deleteTask(id);
-      setModal({ type: 'success', message: '¡La tarea se ha eliminado con éxito!' });
-      await loadTasks({ preserveFeedback: true });
+      await deleteTaskMutation.mutateAsync(id);
+
+      setModal({
+        type: 'success',
+        message: '¡La tarea se ha eliminado con éxito!',
+      });
     } catch (err) {
       setError(err?.message || 'No se pudo eliminar la tarea');
-      setModal({ type: 'error', message: err?.message || 'No se pudo eliminar la tarea' });
+
+      setModal({
+        type: 'error',
+        message: err?.message || 'No se pudo eliminar la tarea',
+      });
     } finally {
       setDeletingId(null);
     }
   }
 
+  // Consultar usuarios.
   async function loadUsers() {
     setUsersLoading(true);
     setError('');
@@ -118,12 +182,13 @@ function Dashboard({ user, onLogout }) {
       const data = await getUsers();
       setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || 'No se pudieron consultar los usuarios');
     } finally {
       setUsersLoading(false);
     }
   }
 
+  // Solicitar confirmación para cambiar el rol.
   function handleChangeRole(id, role) {
     setModal({
       type: 'confirm',
@@ -137,13 +202,23 @@ function Dashboard({ user, onLogout }) {
     setSavingUserId(id);
     setError('');
     setSuccess('');
+
     try {
       await changeUserRole(id, role);
-      setModal({ type: 'success', message: '¡El rol del usuario se ha actualizado con éxito!' });
+
+      setModal({
+        type: 'success',
+        message: '¡El rol del usuario se ha actualizado con éxito!',
+      });
+
       await loadUsers();
     } catch (err) {
       setError(err?.message || 'No se pudo actualizar el rol');
-      setModal({ type: 'error', message: err?.message || 'No se pudo actualizar el rol' });
+
+      setModal({
+        type: 'error',
+        message: err?.message || 'No se pudo actualizar el rol',
+      });
     } finally {
       setSavingUserId(null);
     }
@@ -151,9 +226,12 @@ function Dashboard({ user, onLogout }) {
 
   async function confirmModalAction() {
     if (!modal?.action || modalBusy) return;
+
     const action = modal.action;
+
     setModalBusy(true);
     setModal(null);
+
     try {
       await action();
     } finally {
@@ -184,19 +262,24 @@ function Dashboard({ user, onLogout }) {
         </p>
 
         <p>
-          Rol: <strong>{user?.role}</strong>
+          Rol: <strong>{user?.role || user?.Role}</strong>
         </p>
 
         <nav className="menu-principal">
-          <button
-            type="button"
-            className="btn-tareas"
-            onClick={openTasks}
-          >
-            Tareas
-          </button>
 
+          {/* Solo el Administrador puede ver el botón Tareas */}
           {isAdmin && (
+            <button
+              type="button"
+              className="btn-tareas"
+              onClick={openTasks}
+            >
+              Tareas
+            </button>
+          )}
+
+          {/* Solo el Administrador puede administrar usuarios */}
+          {canManageUsers && (
             <button
               type="button"
               className="btn-usuarios"
@@ -213,13 +296,13 @@ function Dashboard({ user, onLogout }) {
           >
             Cerrar sesión
           </button>
+
         </nav>
-
-
       </header>
 
       <hr />
 
+      {/* Ventana de confirmación y mensajes */}
       {modal && (
         <div
           className="modal d-block"
@@ -227,18 +310,26 @@ function Dashboard({ user, onLogout }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="taskmanager-modal-title"
-          style={{ backgroundColor: 'rgba(15, 23, 42, 0.45)', zIndex: 1055 }}
+          style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.45)',
+            zIndex: 1055,
+          }}
         >
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
+
               <div className="modal-header">
-                <h5 className="modal-title" id="taskmanager-modal-title">
+                <h5
+                  className="modal-title"
+                  id="taskmanager-modal-title"
+                >
                   {modal.type === 'success'
                     ? 'Operación exitosa'
                     : modal.type === 'error'
                       ? 'Ocurrió un error'
                       : 'Confirmar acción'}
                 </h5>
+
                 <button
                   type="button"
                   className="btn-close"
@@ -247,25 +338,45 @@ function Dashboard({ user, onLogout }) {
                   disabled={modalBusy}
                 />
               </div>
+
               <div className="modal-body">
                 <p className="mb-0">{modal.message}</p>
               </div>
+
               <div className="modal-footer">
                 {modal.type === 'confirm' ? (
                   <>
-                    <button type="button" className="btn btn-secondary" onClick={() => setModal(null)} disabled={modalBusy}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setModal(null)}
+                      disabled={modalBusy}
+                    >
                       Cancelar
                     </button>
-                    <button type="button" className="btn btn-primary" onClick={confirmModalAction} disabled={modalBusy}>
-                      {modalBusy ? 'Procesando...' : modal.confirmText || 'Confirmar'}
+
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={confirmModalAction}
+                      disabled={modalBusy}
+                    >
+                      {modalBusy
+                        ? 'Procesando...'
+                        : modal.confirmText || 'Confirmar'}
                     </button>
                   </>
                 ) : (
-                  <button type="button" className="btn btn-primary" onClick={() => setModal(null)}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setModal(null)}
+                  >
                     Aceptar
                   </button>
                 )}
               </div>
+
             </div>
           </div>
         </div>
@@ -274,8 +385,16 @@ function Dashboard({ user, onLogout }) {
       {success && <p role="status">{success}</p>}
       {error && <p role="alert">{error}</p>}
 
+      {showTasks && section === 'tasks' && tasksError && (
+        <p role="alert">
+          {tasksError.message || 'No se pudieron cargar las tareas'}
+        </p>
+      )}
+
+      {/* SECCIÓN DE TAREAS */}
       {section === 'tasks' && (
         <>
+          {/* Solo Admin y Manager pueden crear tareas */}
           {canManageTasks && (
             <>
               <TaskForm onCreate={handleCreateTask} />
@@ -283,7 +402,8 @@ function Dashboard({ user, onLogout }) {
             </>
           )}
 
-          {editingTask && (
+          {/* Solo Admin y Manager pueden editar */}
+          {editingTask && canManageTasks && (
             <TaskEditForm
               key={editingTask.Id ?? editingTask.id}
               task={editingTask}
@@ -295,6 +415,7 @@ function Dashboard({ user, onLogout }) {
           <section>
             <h2>Tareas registradas</h2>
 
+            {/* Todos los roles pueden consultar tareas */}
             <button
               type="button"
               onClick={loadTasks}
@@ -331,50 +452,69 @@ function Dashboard({ user, onLogout }) {
                         return (
                           <tr key={id}>
                             <td>{id}</td>
-                            <td>{task.Title ?? task.title}</td>
+
+                            <td>
+                              {task.Title ?? task.title}
+                            </td>
+
                             <td>
                               {task.DepartmentName ??
                                 task.departmentName ??
                                 task.DepartmentId ??
                                 task.departmentId}
                             </td>
+
                             <td>
                               {task.AssignedToName ??
                                 task.assignedToName ??
                                 task.AssignedTo ??
                                 task.assignedTo}
                             </td>
-                            <td>{task.Status ?? task.status}</td>
-                            <td>{task.Priority ?? task.priority}</td>
+
+                            <td>
+                              {task.Status ?? task.status}
+                            </td>
+
+                            <td>
+                              {task.Priority ?? task.priority}
+                            </td>
+
                             <td>
                               {String(
                                 task.DueDate ?? task.dueDate ?? ''
                               ).slice(0, 10) || 'Sin fecha'}
                             </td>
+
                             <td>
-
-                              <button
-                                type="button"
-                                className="btn-editar"
-                                onClick={() => {
-                                  setEditingTask(task);
-                                  setSuccess('');
-                                }}
-                              >
-                                Editar
-                              </button>
-
+                              {/* Solo Admin y Manager pueden editar y eliminar */}
                               {canManageTasks && (
-                                <button
-                                  type="button"
-                                  className="btn-eliminar"
-                                  onClick={() => handleDeleteTask(task)}
-                                  disabled={deletingId === id}
-                                >
-                                  {deletingId === id
-                                    ? 'Eliminando...'
-                                    : 'Eliminar'}
-                                </button>
+                                <>
+                                  <button
+                                    type="button"
+                                    className="btn-editar"
+                                    onClick={() => {
+                                      setEditingTask(task);
+                                      setSuccess('');
+                                    }}
+                                  >
+                                    Editar
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    className="btn-eliminar"
+                                    onClick={() => handleDeleteTask(task)}
+                                    disabled={deletingId === id}
+                                  >
+                                    {deletingId === id
+                                      ? 'Eliminando...'
+                                      : 'Eliminar'}
+                                  </button>
+                                </>
+                              )}
+
+                              {!canManageTasks && (
+                                <span>Solo consulta</span>
                               )}
                             </td>
                           </tr>
@@ -389,7 +529,8 @@ function Dashboard({ user, onLogout }) {
         </>
       )}
 
-      {section === 'users' && isAdmin && (
+      {/* SECCIÓN DE ADMINISTRACIÓN DE USUARIOS */}
+      {section === 'users' && canManageUsers && (
         <section>
           <h2>Administrar usuarios</h2>
 
@@ -398,7 +539,9 @@ function Dashboard({ user, onLogout }) {
             onClick={loadUsers}
             disabled={usersLoading}
           >
-            {usersLoading ? 'Consultando...' : 'Actualizar usuarios'}
+            {usersLoading
+              ? 'Consultando...'
+              : 'Actualizar usuarios'}
           </button>
 
           {!usersLoading && (
@@ -417,31 +560,49 @@ function Dashboard({ user, onLogout }) {
               <tbody>
                 {users.map((registeredUser) => {
                   const id = registeredUser.Id ?? registeredUser.id;
-                  const email = registeredUser.Email ?? registeredUser.email;
-                  const role = registeredUser.Role ?? registeredUser.role;
 
-                  const isMainAdmin =
-                    email?.toLowerCase() === mainAdminEmail;
+                  const email = (
+                    registeredUser.Email ?? registeredUser.email ?? ''
+                  ).trim().toLowerCase();
+
+                  const role = String(
+                    registeredUser.Role ?? registeredUser.role ?? ''
+                  ).trim().toLowerCase();
+
+                  const isMainAdmin = email === mainAdminEmail;
+
+                  const currentUserId = user?.id ?? user?.Id;
 
                   const isOwnAccount =
-                    id === (user?.id ?? user?.Id);
+                    String(id) === String(currentUserId);
+
+                  const departmentId =
+                    registeredUser.DepartmentId ??
+                    registeredUser.departmentId;
+
+                  const departments = {
+                    1: 'Recursos Humanos',
+                    2: 'Tecnología',
+                    3: 'Finanzas',
+                    4: 'Operaciones',
+                  };
 
                   return (
                     <tr key={id}>
                       <td>{id}</td>
+
                       <td>
                         {registeredUser.Name ?? registeredUser.name}
                       </td>
+
                       <td>{email}</td>
+
                       <td>
-                        {({
-                          1: 'Recursos Humanos',
-                          2: 'Tecnología',
-                          3: 'Finanzas',
-                          4: 'Operaciones',
-                        })[registeredUser.DepartmentId ?? registeredUser.departmentId] || 'Sin departamento'}
+                        {departments[departmentId] || 'Sin departamento'}
                       </td>
+
                       <td>{role}</td>
+
                       <td>
                         {isMainAdmin ? (
                           <strong>Administrador principal</strong>

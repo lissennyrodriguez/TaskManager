@@ -12,16 +12,42 @@ function getHeaders() {
 
 export async function getUsers() {
   const response = await fetch(API_URL, {
+    method: 'GET',
     headers: getHeaders(),
   });
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.message || 'No se pudieron consultar los usuarios');
+    throw new Error(
+      data.message || 'No se pudieron consultar los usuarios'
+    );
   }
 
-  return data.users;
+  // Reconocer diferentes formatos de respuesta del Gateway.
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data.users)) {
+    return data.users;
+  }
+
+  if (Array.isArray(data.data)) {
+    return data.data;
+  }
+
+  if (Array.isArray(data.data?.users)) {
+    return data.data.users;
+  }
+
+  if (Array.isArray(data.results)) {
+    return data.results;
+  }
+
+  console.log('Respuesta recibida al consultar usuarios:', data);
+
+  return [];
 }
 
 export async function changeUserRole(id, role) {
@@ -34,8 +60,10 @@ export async function changeUserRole(id, role) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.message || 'No se pudo cambiar el rol');
+    throw new Error(
+      data.message || 'No se pudo cambiar el rol'
+    );
   }
 
-  return data.user;
+  return data.user ?? data.data?.user ?? data.data ?? data;
 }

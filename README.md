@@ -1,338 +1,352 @@
 # TaskManager
 
-**Sistema de gestión de tareas Full Stack** desarrollado con React, Node.js, Express, SQL Server y MongoDB.
+Sistema web de gestión y asignación de tareas empresariales desarrollado como proyecto integrador final. Permite administrar usuarios, organizar tareas por departamentos y controlar el seguimiento de las actividades mediante una aplicación web con arquitectura de microservicios.
 
-TaskManager permite organizar tareas, gestionar usuarios y departamentos, asignar responsables y controlar el acceso según el rol. Utiliza **SQL Server** para los datos operativos y **MongoDB** para registrar eventos de actividad.
+## 1. Descripción del proyecto
 
-> **Estado:** proyecto en desarrollo. La autenticación, las operaciones principales de tareas y la administración de usuarios se han probado parcialmente. Algunas funcionalidades y permisos requieren validación integral antes de considerarse terminados.
+TaskManager es una aplicación diseñada para facilitar la organización y supervisión de las tareas dentro de una empresa.
 
-## Contenido
+El sistema permite registrar usuarios, asignar responsabilidades, establecer prioridades, definir fechas límite y consultar el estado de las tareas.
 
-- [Características](#características)
-- [Tecnologías](#tecnologías)
-- [Arquitectura y estructura](#arquitectura-y-estructura)
-- [Requisitos](#requisitos)
-- [Instalación](#instalación)
-- [API REST](#api-rest)
-- [Roles y permisos](#roles-y-permisos)
-- [Persistencia y auditoría](#persistencia-y-auditoría)
-- [Pruebas](#pruebas)
-- [Estado y próximos pasos](#estado-y-próximos-pasos)
-- [Seguridad](#seguridad)
+La aplicación organiza los usuarios y las actividades por departamentos:
 
-## Características
+- Recursos Humanos.
+- Tecnología.
+- Finanzas.
+- Operaciones.
 
-- Registro e inicio de sesión mediante **JWT** y contraseñas protegidas con **bcrypt**.
-- Tres roles: administrador (`admin`), gerente (`manager`) y empleado (`employee`).
-- Operaciones CRUD de tareas: crear, consultar, actualizar y eliminar.
-- Asignación de tareas a usuarios registrados, con selección de responsable y departamento.
-- Prioridades: `baja`, `media`, `alta` y `urgente`.
-- Estados: `pendiente`, `en_progreso`, `completada` y `cancelada`.
-- Fecha límite opcional.
-- Panel de tareas y sección de administración de usuarios.
-- Validaciones de entrada con **Zod** en el backend.
-- Registro de eventos del sistema con **Mongoose** en MongoDB.
+Además, incorpora un sistema de autenticación y autorización basado en JWT, almacenamiento relacional y no relacional, comunicación entre microservicios y una interfaz web desarrollada con React.
 
-**En validación:** asignaciones entre departamentos y entre diferentes roles, permisos de edición y registro de cambios de rol en MongoDB. El diseño y los mensajes de confirmación de la interfaz continúan en mejora.
+## 2. Objetivos del proyecto
 
-## Tecnologías
+- Desarrollar una aplicación web Full Stack.
+- Implementar una API REST utilizando Node.js y Express.
+- Aplicar los principios de arquitectura MVC y arquitectura hexagonal.
+- Implementar una arquitectura de microservicios.
+- Integrar SQL Server y MongoDB.
+- Implementar autenticación y autorización mediante JWT.
+- Gestionar contraseñas de forma segura utilizando bcrypt.
+- Incorporar RabbitMQ para la comunicación entre servicios.
+- Desarrollar una interfaz web interactiva con React.
+- Implementar contenedores mediante Docker.
 
-| Capa | Tecnologías |
-| --- | --- |
-| Frontend | React, Vite, JavaScript, CSS, Bootstrap 5 |
-| Backend | Node.js, Express, CommonJS |
-| Autenticación y seguridad | JWT, bcrypt, Zod, CORS |
-| Datos principales | Microsoft SQL Server |
-| Auditoría | MongoDB, Mongoose |
-| Herramientas | VS Code, SSMS, PowerShell, npm, Git y GitHub |
+## 3. Tecnologías utilizadas
 
-## Arquitectura y estructura
+| Tecnología | Utilidad |
+|---|---|
+| HTML5 | Estructura de la aplicación |
+| CSS3 | Diseño y estilos |
+| JavaScript | Lógica de programación |
+| React | Desarrollo del frontend |
+| Node.js | Entorno de ejecución |
+| Express.js | Desarrollo de API REST |
+| SQL Server | Base de datos relacional |
+| MongoDB | Almacenamiento de historial de actividades |
+| Mongoose | Modelado de documentos MongoDB |
+| JWT | Autenticación y autorización |
+| bcrypt | Encriptación de contraseñas |
+| Zod | Validación de datos |
+| RabbitMQ | Comunicación entre microservicios |
+| Docker | Contenerización de servicios |
+| Git y GitHub | Control de versiones |
 
-El frontend React consume una API REST. El backend separa rutas, controladores, lógica de aplicación, modelos y repositorios. SQL Server almacena usuarios, departamentos y tareas; MongoDB almacena registros de actividad.
+## 4. Arquitectura del sistema
+
+El proyecto utiliza una arquitectura basada en microservicios, con un API Gateway que centraliza las solicitudes del frontend y las dirige al servicio correspondiente.
+
+### Componentes principales
+
+**Frontend**
+- Aplicación desarrollada con React.
+- Inicio de sesión.
+- Panel principal.
+- Visualización y gestión de tareas.
+- Administración de usuarios según el rol.
+
+**API Gateway**
+- Punto de entrada de las solicitudes del frontend.
+- Redirección de solicitudes al microservicio correspondiente.
+- Centralización del acceso a los servicios.
+
+**Microservicio de autenticación**
+- Registro de usuarios.
+- Inicio de sesión.
+- Validación de credenciales.
+- Generación y verificación de tokens JWT.
+- Administración de usuarios y roles.
+
+**Microservicio de tareas**
+- Creación de tareas.
+- Consulta de tareas.
+- Actualización de tareas.
+- Eliminación de tareas.
+- Asignación de tareas a usuarios.
+
+**RabbitMQ**
+- Comunicación mediante mensajes entre los microservicios.
+- Publicación y consumo de eventos relacionados con los usuarios.
+
+**Bases de datos**
+- SQL Server: almacenamiento de usuarios, departamentos y tareas.
+- MongoDB: almacenamiento del historial de actividades.
+
+## 5. Roles y permisos
+
+El sistema contempla tres roles principales:
+
+| Funcionalidad | Administrador | Gerente | Empleado |
+|---|:---:|:---:|:---:|
+| Iniciar sesión | Sí | Sí | Sí |
+| Consultar tareas | Sí | Sí | Sí |
+| Crear tareas | Sí | Sí | No |
+| Editar tareas | Sí | Sí | No |
+| Eliminar tareas | Sí | Sí | No |
+| Administrar usuarios | Sí | No | No |
+| Cambiar roles | Sí | No | No |
+
+Los permisos se controlan de acuerdo con el rol asignado a cada usuario.
+
+## 6. Estructura del proyecto
+
+La organización general del repositorio es la siguiente:
 
 ```text
 TaskManager/
+│
 ├── api/
-│   ├── src/
-│   │   ├── application/
-│   │   │   └── tasks/task.use-cases.js
-│   │   ├── config/env.js
-│   │   ├── controllers/
-│   │   │   ├── auth.controller.js
-│   │   │   ├── task.controller.js
-│   │   │   └── user.controller.js
-│   │   ├── domain/tasks/task.entity.js
-│   │   ├── infrastructure/
-│   │   │   ├── database/
-│   │   │   │   ├── sqlserver.js
-│   │   │   │   └── mongodb.js
-│   │   │   └── repositories/
-│   │   │       ├── auth.repository.js
-│   │   │       └── task.repository.js
-│   │   ├── middlewares/
-│   │   │   ├── auth.middleware.js
-│   │   │   └── error.middleware.js
-│   │   ├── models/Activity.js
-│   │   ├── routes/
-│   │   │   ├── auth.routes.js
-│   │   │   ├── task.routes.js
-│   │   │   └── user.routes.js
-│   │   ├── validators/
-│   │   │   ├── auth.validator.js
-│   │   │   └── task.validator.js
-│   │   ├── app.js
-│   │   └── server.js
-│   ├── .env                 # Configuración local; no publicar
-│   └── package.json
+│   └── API original
+│
 ├── database/
-│   └── schema.sql
+│   └── Scripts y estructura de SQL Server
+│
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── TaskForm.jsx
-│   │   │   └── TaskEditForm.jsx
-│   │   ├── pages/Dashboard.jsx
+│   │   ├── pages/
 │   │   ├── services/
-│   │   │   ├── task.service.js
-│   │   │   └── user.service.js
 │   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
+│   │   └── main.jsx
 │   └── package.json
+│
+├── gateway/
+│   ├── src/
+│   │   ├── app.js
+│   │   └── server.js
+│   └── package.json
+│
+├── servicios/
+│   ├── auth/
+│   │   ├── src/
+│   │   └── package.json
+│   │
+│   └── tareas/
+│       ├── src/
+│       └── package.json
+│
+├── docker-compose.yml
+├── .gitignore
 └── README.md
 ```
 
-> Estructura de referencia basada en los archivos trabajados. Puede haber componentes adicionales de autenticación, estilos u otros archivos en la copia local.
+## 7. Instalación y configuración
 
-## Requisitos
+### Requisitos previos
+
+Antes de ejecutar el proyecto, es necesario tener instalado:
 
 - Node.js y npm.
-- Microsoft SQL Server en ejecución y acceso mediante SSMS u otra herramienta SQL.
-- Una instancia accesible de MongoDB (local o Atlas).
-- Git (opcional, para clonar y versionar el repositorio).
+- SQL Server.
+- MongoDB.
+- RabbitMQ.
+- Docker Desktop (para ejecutar los contenedores).
+- Git.
 
-## Instalación
-
-### 1. Obtener el proyecto
+### Clonar el repositorio
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone URL_DEL_REPOSITORIO
+```
+
+Entrar en la carpeta:
+
+```bash
 cd TaskManager
 ```
 
-Si ya tienes la carpeta del proyecto, ábrela directamente; no necesitas volver a clonarla.
+### Instalar dependencias
 
-### 2. Preparar SQL Server
-
-1. Inicia SQL Server y conéctate mediante SSMS.
-2. Ejecuta `database/schema.sql` para preparar `TaskManagerDB` y las tablas `Departments`, `Users` y `Tasks`.
-3. Comprueba que la instancia acepte conexiones en el puerto configurado (por ejemplo, `1433`).
-4. Verifica que existan los departamentos necesarios antes de registrar usuarios.
-
-Durante el desarrollo se utilizaron Recursos Humanos, Tecnología, Finanzas y Operaciones.
-
-### 3. Instalar y configurar el backend
-
-Desde la carpeta raíz:
+Instalar las dependencias de cada componente:
 
 ```bash
-cd api
+cd gateway
 npm install
 ```
 
-Configura `api/.env` con valores propios. **El siguiente bloque contiene marcadores de ejemplo, no credenciales reales:**
-
-```dotenv
-PORT=3000
-FRONTEND_URL=http://localhost:5173
-
-SQL_SERVER=localhost
-SQL_PORT=1433
-SQL_DATABASE=TaskManagerDB
-SQL_USER=sa
-SQL_PASSWORD=REEMPLAZAR_CON_PASSWORD_LOCAL
-SQL_ENCRYPT=false
-SQL_TRUST_CERT=true
-
-MONGODB_URI=mongodb://127.0.0.1:27017/TaskManagerDB
-JWT_SECRET=REEMPLAZAR_CON_SECRETO_LARGO_Y_ALEATORIO
+```bash
+cd ../servicios/auth
+npm install
 ```
 
-Si utilizas MongoDB Atlas, reemplaza `MONGODB_URI` por tu cadena de conexión privada. Comprueba los nombres exactos de las variables en `api/src/config/env.js`.
-
-Inicia el servidor:
+```bash
+cd ../tareas
+npm install
+```
 
 ```bash
+cd ../../frontend
+npm install
+```
+
+### Configurar variables de entorno
+
+Cada servicio debe contar con su archivo `.env` y las variables correspondientes a sus conexiones y configuración.
+
+Entre las variables necesarias se encuentran:
+
+```env
+PORT=
+SQL_SERVER=
+SQL_PORT=
+SQL_DATABASE=
+SQL_USER=
+SQL_PASSWORD=
+SQL_ENCRYPT=
+SQL_TRUST_CERT=
+
+MONGODB_URI=
+
+JWT_SECRET=
+JWT_EXPIRES_IN=
+
+RABBITMQ_URL=
+```
+
+Los valores deben configurarse de acuerdo con el entorno de ejecución.
+
+**Importante:** No se deben subir archivos `.env`, contraseñas, claves JWT ni credenciales al repositorio público. Utilizar archivos `.env.example` con valores de ejemplo.
+
+## 8. Ejecución del proyecto
+
+Cada componente se ejecuta desde su propia carpeta.
+
+**1. Microservicio de autenticación**
+
+```bash
+cd servicios/auth
 npm run dev
 ```
 
-La API utiliza por defecto `http://localhost:3000`. Para verificarla, abre `http://localhost:3000/api/health`.
+**2. Microservicio de tareas**
 
-### 4. Instalar y ejecutar el frontend
+```bash
+cd servicios/tareas
+npm run dev
+```
 
-En **otra terminal**, desde la carpeta raíz:
+**3. API Gateway**
+
+```bash
+cd gateway
+npm run dev
+```
+
+**4. Frontend**
 
 ```bash
 cd frontend
-npm install
 npm run dev
 ```
 
-Abre la dirección indicada por Vite, normalmente `http://localhost:5173`.
-
-> El backend y el frontend deben permanecer en ejecución al mismo tiempo. Si Bootstrap no está instalado, utiliza `npm install bootstrap` dentro de `frontend` y revisa su importación en `src/main.jsx`.
-
-## API REST
-
-### Autenticación
-
-| Método | Ruta | Uso |
-| --- | --- | --- |
-| `POST` | `/api/auth/register` | Registrar usuario |
-| `POST` | `/api/auth/login` | Iniciar sesión y obtener JWT |
-| `GET` | `/api/auth/me` | Consultar sesión autenticada |
-| `GET` | `/api/health` | Comprobar disponibilidad de la API |
-
-### Tareas
-
-| Método | Ruta | Uso |
-| --- | --- | --- |
-| `GET` | `/api/tasks` | Listar tareas visibles |
-| `GET` | `/api/tasks/:id` | Consultar tarea |
-| `POST` | `/api/tasks` | Crear tarea |
-| `PUT` | `/api/tasks/:id` | Actualizar tarea |
-| `DELETE` | `/api/tasks/:id` | Eliminar tarea |
-
-### Usuarios
-
-| Método | Ruta | Uso |
-| --- | --- | --- |
-| `GET` | `/api/users` | Listar usuarios (administrador) |
-| `GET` | `/api/users/assignable` | Consultar usuarios asignables (administrador o gerente) |
-| `PATCH` | `/api/users/:id/role` | Cambiar rol (administrador) |
-
-Las rutas privadas requieren el encabezado:
-
-```http
-Authorization: Bearer TU_TOKEN_JWT
-```
-
-### Ejemplo: crear una tarea
-
-```http
-POST /api/tasks
-Authorization: Bearer TU_TOKEN_JWT
-Content-Type: application/json
-```
-
-```json
-{
-  "title": "Preparar informe mensual",
-  "description": "Consolidar los resultados del equipo",
-  "departmentId": 2,
-  "assignedTo": 1,
-  "priority": "alta",
-  "status": "pendiente",
-  "dueDate": "2026-11-15"
-}
-```
-
-`departmentId` y `assignedTo` deben referirse a registros existentes. La validación de asignaciones entre departamentos debe comprobarse tanto en la interfaz como en la API.
-
-## Roles y permisos
-
-La siguiente tabla expresa las **reglas previstas** del proyecto. Es necesario validar cada operación desde el backend antes de dar la matriz por completamente implementada.
-
-| Operación | Administrador | Gerente | Empleado |
-| --- | :---: | :---: | :---: |
-| Iniciar sesión | Sí | Sí | Sí |
-| Consultar tareas autorizadas | Sí | Sí | Sí |
-| Crear y asignar tareas | Sí | Sí | No |
-| Asignar a usuarios de otros departamentos | Previsto | Previsto | No |
-| Editar y eliminar tareas | Según permisos | Según permisos | Limitado |
-| Cambiar roles de usuarios | Sí | No | No |
-| Recibir tareas | Sí | Sí | Sí |
-
-La autorización debe aplicarse en el servidor; ocultar un botón en React no sustituye la comprobación de permisos.
-
-## Persistencia y auditoría
-
-### SQL Server
-
-- `Departments`: catálogo de departamentos.
-- `Users`: usuarios, roles y departamento asociado.
-- `Tasks`: título, descripción, responsable, departamento, prioridad, estado y fechas.
-
-### MongoDB
-
-El modelo `Activity` incluye `action`, `entityType`, `entityId`, `userId`, `details` y `createdAt`, con índices por entidad y fecha.
-
-Acciones contempladas por el modelo:
+El frontend se ejecuta normalmente en:
 
 ```text
-TASK_CREATED
-TASK_UPDATED
-TASK_STATUS_UPDATED
-TASK_DELETED
-USER_REGISTERED
-USER_LOGIN
-USER_ROLE_CHANGED
+http://localhost:5173
 ```
 
-**Observación:** se verificó la escritura de otras actividades, pero el evento `USER_ROLE_CHANGED` todavía está pendiente de confirmación en MongoDB, aunque el cambio de rol mediante la API sí funcionó.
+El API Gateway se ejecuta normalmente en:
 
-Para consultar los últimos eventos desde `mongosh`:
-
-```javascript
-use TaskManagerDB
-db.activities.find().sort({ createdAt: -1 }).limit(10)
+```text
+http://localhost:3000
 ```
 
-## Pruebas
+Los microservicios utilizan sus respectivos puertos configurados en las variables de entorno.
 
-Lista de comprobación manual:
+## 9. Docker
 
-- [x] Iniciar la API y obtener una respuesta correcta de `/api/health`.
-- [x] Autenticarse y consultar `/api/users` con un JWT válido.
-- [x] Comprobar que `/api/users` rechaza solicitudes sin token (`401`).
-- [x] Cambiar un rol mediante `PATCH /api/users/:id/role` desde PowerShell.
-- [x] Consultar actividades existentes en MongoDB.
-- [ ] Confirmar que `USER_ROLE_CHANGED` se registra después de cambiar un rol.
-- [ ] Corregir o validar el cambio de roles desde el panel React.
-- [ ] Validar las asignaciones entre departamentos y entre roles.
-- [ ] Completar las pruebas de creación, edición, eliminación y actualización de estado de tareas desde la interfaz.
-- [ ] Comprobar mensajes de éxito, errores y confirmaciones en todos los formularios.
-- [ ] Añadir pruebas automatizadas de API y frontend.
+El proyecto incorpora Docker para facilitar la ejecución y administración de los componentes del sistema mediante contenedores.
 
-## Estado y próximos pasos
+Para iniciar los servicios definidos en Docker Compose:
 
-1. **Auditoría de roles:** confirmar la escritura de `USER_ROLE_CHANGED` en MongoDB y revisar cualquier error en la terminal del backend.
-2. **Administración de usuarios:** validar el flujo de cambio de rol desde el frontend, incluido el manejo de errores y la sesión JWT.
-3. **Asignación de tareas:** verificar que administradores y gerentes puedan asignar tareas a usuarios de cualquier departamento, de acuerdo con las reglas del proyecto.
-4. **Experiencia de usuario:** mejorar la presentación de los formularios de inicio de sesión y registro, manteniendo los colores existentes, y mostrar confirmaciones claras.
-5. **Calidad y despliegue:** agregar filtros, pruebas automatizadas, documentación de errores y opciones de despliegue.
-
-## Seguridad
-
-- Nunca publiques archivos `.env`, contraseñas, cadenas de conexión o tokens JWT.
-- Usa un `JWT_SECRET` robusto y diferente en cada entorno.
-- Valida las entradas con Zod y aplica autorización por rol en las rutas.
-- No confíes exclusivamente en validaciones del navegador.
-- Excluye dependencias y archivos locales del repositorio. Ejemplo de `.gitignore`:
-
-```gitignore
-**/node_modules/
-**/.env
-**/.env.*
-!**/.env.example
-**/dist/
-*.log
+```bash
+docker compose up -d
 ```
 
-## Autoría
+Para consultar el estado de los contenedores:
 
-Proyecto académico y de portafolio de desarrollo **Full Stack**.
+```bash
+docker compose ps
+```
+
+Para consultar los registros:
+
+```bash
+docker compose logs
+```
+
+Para detener los servicios:
+
+```bash
+docker compose down
+```
+
+Los datos persistentes se administran mediante volúmenes de Docker.
+
+## 10. Seguridad
+
+El sistema incorpora diferentes mecanismos para proteger la información:
+
+- Autenticación mediante JWT.
+- Contraseñas protegidas con bcrypt.
+- Validación de datos mediante Zod.
+- Rutas protegidas mediante middleware de autenticación.
+- Control de permisos según el rol del usuario.
+- Variables de entorno para credenciales y configuraciones sensibles.
+
+## 11. Pruebas y verificación
+
+Se pueden verificar los servicios mediante sus rutas de salud:
+
+| Servicio | URL |
+|---|---|
+| API Gateway | `http://localhost:3000/api/health` |
+| Auth Service | `http://localhost:3001/api/health` |
+| Tasks Service | `http://localhost:3002/api/health` |
+
+Una respuesta satisfactoria debe indicar que el servicio se encuentra funcionando correctamente.
+
+También se deben comprobar:
+- Registro e inicio de sesión.
+- Validación de credenciales.
+- Acceso a rutas protegidas.
+- Creación, consulta, edición y eliminación de tareas.
+- Asignación de tareas.
+- Permisos de cada rol.
+- Comunicación entre microservicios.
+- Registro de eventos en MongoDB.
+- Funcionamiento de los contenedores Docker.
+
+## 12. Autor
+
+**Desarrollado por:** Lissenny Esther Rodriguez Meran
+
+**Proyecto:** TaskManager
+
+**Tipo:** Proyecto integrador final Full Stack
+
+**Tecnologías principales:** React, Node.js, Express, SQL Server, MongoDB, RabbitMQ y Docker.
 
 ---
 
-**TaskManager** · React · Node.js · Express · SQL Server · MongoDB
+## 13. Licencia
+
+Este proyecto fue desarrollado con fines académicos y educativos.

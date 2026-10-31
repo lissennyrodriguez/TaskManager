@@ -1,261 +1,434 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #263445;
-  background: #f6f8fb;
-  font-synthesis: none;
+  /* Tu Paleta de Colores Corporativa */
+  --verde-oscuro: #183a2c;
+  --verde-corporativo: #244c3b;
+  --verde-secundario: #547d66;
+  --verde-suave: #83a58e;
+  --fondo-claro: #e4eee6;
+  --blanco: #ffffff;
+
+  /* Mapeo de Variables para el Diseño */
+  --primary: var(--verde-corporativo);
+  --primary-hover: var(--verde-oscuro);
+  --accent: var(--verde-suave);
+  --accent-light: var(--fondo-claro);
+  --border: rgba(131, 165, 142, 0.3);
+  --border-focus: var(--verde-suave);
+  
+  --text-main: #12261d;
+  --text-muted: #547d66;
+  --surface: rgba(255, 255, 255, 0.95);
+  --surface-glass: rgba(255, 255, 255, 0.85);
+  
+  --danger: #d94b4b;
+  --danger-hover: #b92f38;
+  --success-bg: rgba(228, 238, 230, 0.9);
+  --success-text: #183a2c;
+  --alert-bg: #fce8e6;
+  --alert-text: #b92f38;
+  
+  --shadow-sm: 0 4px 15px rgba(10, 30, 20, 0.15);
+  --shadow-md: 0 10px 30px rgba(10, 30, 20, 0.25), 0 0 20px rgba(0, 150, 120, 0.15);
+  --shadow-lg: 0 20px 50px rgba(10, 30, 20, 0.35), 0 0 35px rgba(0, 150, 120, 0.2);
+  
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+html {
+  min-height: 100%;
+  color-scheme: light;
+}
+
+/* --- Fondo basado en la nueva imagen (Verde oscuro profundo a azulado oscuro difuminado) --- */
 body {
   margin: 0;
   min-width: 320px;
-  background: #f6f8fb;
-  color: #263445;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: var(--text-main);
+  background-color: #071a14;
+  background-image: 
+    radial-gradient(circle at 10% 85%, rgba(10, 130, 70, 0.55) 0%, transparent 50%),
+    radial-gradient(circle at 85% 15%, rgba(10, 60, 80, 0.6) 0%, transparent 55%),
+    linear-gradient(135deg, #071a14 0%, #0d2b22 50%, #061621 100%);
+  background-attachment: fixed;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 main {
-  max-width: 1200px;
-  margin: 35px auto;
-  padding: 28px;
+  width: 100%;
+  max-width: 1140px;
+  margin: 40px auto;
+  padding: 0 24px;
 }
+
+/* --- Contenedores Glassmorphic --- */
 
 header,
 section {
-  background: white;
-  padding: 26px;
+  padding: 32px;
   margin-bottom: 24px;
-  border: 1px solid #e5eaf0;
-  border-radius: 12px;
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* --- Tipografía --- */
+
+h1, h2, h3 {
+  color: var(--verde-corporativo);
+  margin-top: 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 h1 {
-  font-size: 26px;
-  color: #172b4d;
+  font-size: 2rem;
+  line-height: 1.25;
+  margin-bottom: 0.5rem;
 }
 
 h2 {
-  font-size: 20px;
-  margin-top: 0;
-  color: #253858;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
 }
 
 p {
   line-height: 1.6;
+  color: var(--text-muted);
+  margin-top: 0;
+  margin-bottom: 1rem;
 }
 
-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
-}
+/* --- Formularios y Controles --- */
 
 form {
   display: grid;
-  gap: 16px;
+  gap: 20px;
 }
 
 label {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  font-weight: 500;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--verde-corporativo);
 }
 
 input,
 select,
 textarea {
   width: 100%;
-  padding: 11px 13px;
-  border: 1px solid #d7dfe9;
-  border-radius: 7px;
-  background: white;
-  color: #263445;
+  padding: 13px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--blanco);
+  color: var(--text-main);
   font: inherit;
+  font-size: 0.95rem;
+  transition: all 0.25s ease-in-out;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--verde-secundario);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #377dff;
-  box-shadow: 0 0 0 3px #377dff20;
+  border-color: var(--verde-corporativo);
+  box-shadow: 0 0 0 4px rgba(131, 165, 142, 0.25);
 }
 
 textarea {
-  min-height: 90px;
+  min-height: 110px;
   resize: vertical;
 }
 
+/* --- Botones Estilo Píldora (Modernos) --- */
+
 button {
-  padding: 11px 17px;
-  border: none;
-  border-radius: 7px;
-  background: #2563eb;
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 1px solid transparent;
+  border-radius: 50px;
+  background: var(--verde-corporativo);
+  color: var(--blanco);
   font: inherit;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  user-select: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
 }
 
-button:hover {
-  background: #1d4ed8;
+button:hover:not(:disabled) {
+  background: var(--verde-oscuro);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(36, 76, 59, 0.3);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 button:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* --- Botones Específicos --- */
+
+.btn-editar {
+  background: var(--verde-secundario);
+}
+
+.btn-editar:hover:not(:disabled) {
+  background: var(--verde-corporativo);
+}
+
+.btn-eliminar {
+  background: var(--danger);
+}
+
+.btn-eliminar:hover:not(:disabled) {
+  background: var(--danger-hover);
+}
+
+.btn-guardar {
+  background: var(--verde-corporativo);
+}
+
+.btn-cancelar {
+  background: var(--verde-secundario);
+}
+
+.btn-cancelar:hover:not(:disabled) {
+  background: var(--verde-oscuro);
+}
+
+/* --- Menú Principal --- */
+
+.menu-principal,
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.menu-principal button {
+  padding: 12px 24px;
+}
+
+.menu-principal .btn-tareas {
+  background: var(--verde-corporativo);
+}
+
+.menu-principal .btn-usuarios {
+  background: var(--verde-secundario);
+}
+
+.menu-principal .btn-salir {
+  background: var(--verde-suave);
+  color: var(--verde-oscuro);
+}
+
+.menu-principal .btn-salir:hover:not(:disabled) {
+  background: #6f937b;
+  color: var(--blanco);
+}
+
+/* --- Tablas --- */
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  font-size: 14px;
-}
-
-th,
-td {
-  padding: 13px;
+  background: var(--blanco);
+  font-size: 0.9rem;
   text-align: left;
-  border: 1px solid #e5eaf0;
 }
 
 th {
-  background: #f1f5f9;
+  background: var(--verde-corporativo);
+  color: var(--blanco);
   font-weight: 600;
+  padding: 16px;
+}
+
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--fondo-claro);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+tr:last-child td {
+  border-bottom: none;
 }
 
 tr:hover td {
-  background: #f8fafc;
+  background: var(--fondo-claro);
 }
 
 td button {
-  margin: 3px;
-  padding: 8px 12px;
-  font-size: 13px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  margin: 2px;
+}
+
+/* --- Alertas y Mensajes --- */
+
+[role="alert"] {
+  padding: 14px 18px;
+  background: var(--alert-bg);
+  color: var(--alert-text);
+  border: 1px solid #f5c2c7;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+[role="status"] {
+  padding: 14px 18px;
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--verde-suave);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
 }
 
 hr {
   border: none;
-  border-top: 1px solid #e5eaf0;
-  margin: 24px 0;
+  border-top: 1px solid var(--border);
+  margin: 28px 0;
 }
 
-[role="alert"] {
-  padding: 12px;
-  background: #fef2f2;
-  color: #b91c1c;
-  border-radius: 7px;
+/* --- Pantalla de Inicio de Sesión --- */
+
+body:has(input[type="password"]):not(:has(.menu-principal)) #root {
+  width: 100%;
+  max-width: 440px;
+  margin: auto;
+  padding: 20px;
 }
 
-[role="status"] {
-  padding: 12px;
-  background: #effaf3;
-  color: #166534;
-  border-radius: 7px;
+body:has(input[type="password"]):not(:has(.menu-principal)) main {
+  max-width: 100%;
+  margin: 0;
+  padding: 40px 32px;
+  background: var(--blanco);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
 }
+
+body:has(input[type="password"]):not(:has(.menu-principal)) h1,
+body:has(input[type="password"]):not(:has(.menu-principal)) h2,
+body:has(input[type="password"]):not(:has(.menu-principal)) p {
+  text-align: center;
+}
+
+body:has(input[type="password"]):not(:has(.menu-principal)) form button[type="submit"] {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* --- Modal Emergente --- */
+
+.modal-content {
+  overflow: hidden;
+  background: var(--blanco);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  background: var(--fondo-claro);
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+  color: var(--verde-corporativo);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-body {
+  padding: 28px 24px;
+  text-align: center;
+  color: var(--text-main);
+  font-size: 1rem;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  background: var(--fondo-claro);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* --- Adaptabilidad (Responsive) --- */
 
 @media (max-width: 768px) {
   main {
-    margin: 10px;
-    padding: 8px;
+    margin: 16px auto;
+    padding: 0 16px;
   }
 
   header,
   section {
-    padding: 16px;
+    padding: 24px;
+    border-radius: var(--radius-md);
   }
 
   h1 {
-    font-size: 22px;
-  }
-
-  table {
-    display: block;
-    overflow-x: auto;
+    font-size: 1.6rem;
   }
 
   nav button {
-    flex: 1;
+    flex: 1 1 auto;
   }
-}
-
-/* Botón Editar - Verde */
-.btn-editar {
-  background-color: #16a34a;
-  color: white;
-}
-
-.btn-editar:hover {
-  background-color: #15803d;
-}
-
-/* Botón Eliminar - Rojo */
-.btn-eliminar {
-  background-color: #dc2626;
-  color: white;
-}
-
-.btn-eliminar:hover {
-  background-color: #b91c1c;
-}
-
-
-/* Menú principal */
-.menu-principal {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-/* Estilo general */
-.menu-principal button {
-  padding: 12px 22px;
-  border: none;
-  border-radius: 10px;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.menu-principal button:hover {
-  transform: translateY(-2px);
-}
-
-/* Tareas - Azul */
-.menu-principal .btn-tareas {
-  background: #2563eb;
-}
-
-.menu-principal .btn-tareas:hover {
-  background: #1d4ed8;
-}
-
-/* Administrar usuarios - Verde azulado */
-.menu-principal .btn-usuarios {
-  background: #0d9488;
-}
-
-.menu-principal .btn-usuarios:hover {
-  background: #0f766e;
-}
-
-/* Cerrar sesión - Gris oscuro */
-.menu-principal .btn-salir {
-  background: #475569;
-}
-
-.menu-principal .btn-salir:hover {
-  background: #334155;
 }
 
 @media (max-width: 600px) {
@@ -266,173 +439,12 @@ hr {
   .menu-principal button {
     width: 100%;
   }
-}
 
-/* Guardar cambios */
-.btn-guardar {
-  background-color: #16a34a;
-  color: white;
-  padding: 12px 22px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-guardar:hover:not(:disabled) {
-  background-color: #15803d;
-  transform: translateY(-2px);
-}
-
-/* Cancelar */
-.btn-cancelar {
-  background-color: #64748b;
-  color: white;
-  padding: 12px 22px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-cancelar:hover:not(:disabled) {
-  background-color: #475569;
-  transform: translateY(-2px);
-}
-
-/* Botones deshabilitados */
-.btn-guardar:disabled,
-.btn-cancelar:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* FORMULARIO DE INICIO DE SESIÓN */
-
-body:has(input[type="password"]):not(:has(.menu-principal)) {
-  background-color: #f7f5fb;
-}
-
-/* Centrar el formulario */
-body:has(input[type="password"]):not(:has(.menu-principal)) #root {
-  max-width: 440px;
-  width: calc(100% - 32px);
-  margin: 70px auto;
-}
-
-/* Tarjeta de inicio de sesión */
-body:has(input[type="password"]):not(:has(.menu-principal)) main {
-  max-width: 100%;
-  margin: 0;
-  padding: 30px;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-}
-
-/* Títulos */
-body:has(input[type="password"]):not(:has(.menu-principal)) h1,
-body:has(input[type="password"]):not(:has(.menu-principal)) h2 {
-  text-align: center;
-  color: #172b4d;
-}
-
-/* Texto */
-body:has(input[type="password"]):not(:has(.menu-principal)) p {
-  text-align: center;
-  color: #64748b;
-}
-
-/* Campos */
-body:has(input[type="password"]):not(:has(.menu-principal)) input {
-  width: 100%;
-  border-radius: 8px;
-  padding: 12px;
-}
-
-/* Botones */
-body:has(input[type="password"]):not(:has(.menu-principal)) button {
-  border-radius: 8px;
-  padding: 12px 18px;
-}
-
-/* Botón principal */
-body:has(input[type="password"]):not(:has(.menu-principal)) form button[type="submit"] {
-  width: 100%;
-  background: #2563eb;
-}
-
-/* Adaptación a móviles */
-@media (max-width: 480px) {
-  body:has(input[type="password"]):not(:has(.menu-principal)) #root {
-    margin: 25px auto;
+  .modal-footer {
+    flex-direction: column-reverse;
   }
-
-  body:has(input[type="password"]):not(:has(.menu-principal)) main {
-    padding: 20px;
+  
+  .modal-footer button {
+    width: 100%;
   }
-}
-
-/* MENSAJES TASKMANAGER - AZUL Y BLANCO */
-
-.modal-content {
-  background-color: #ffffff;
-  border: 1px solid #dbeafe;
-  border-radius: 16px;
-  box-shadow: 0 12px 35px rgba(37, 99, 235, 0.15);
-  overflow: hidden;
-}
-
-.modal-header {
-  background-color: #eff6ff;
-  border-bottom: 1px solid #dbeafe;
-  padding: 20px 24px;
-}
-
-.modal-title {
-  color: #1e40af;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.modal-body {
-  padding: 30px 24px;
-  text-align: center;
-  color: #334155;
-  font-size: 16px;
-}
-
-.modal-footer {
-  background-color: #ffffff;
-  border-top: 1px solid #e2e8f0;
-  padding: 16px 24px;
-}
-
-.modal-footer .btn-primary {
-  background-color: #2563eb;
-  border-color: #2563eb;
-  color: white;
-  border-radius: 8px;
-  padding: 10px 25px;
-}
-
-.modal-footer .btn-primary:hover {
-  background-color: #1d4ed8;
-}
-
-.modal-footer .btn-secondary {
-  background-color: white;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  padding: 10px 25px;
-}
-
-.modal-footer .btn-secondary:hover {
-  background-color: #eff6ff;
-  color: #1d4ed8;
 }

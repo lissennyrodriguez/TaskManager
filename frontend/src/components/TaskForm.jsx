@@ -49,7 +49,7 @@ function TaskForm({ onCreate }) {
         }
 
         const response = await fetch(
-          `${API_URL}/users/assignable`,
+           `${API_URL}/users`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
